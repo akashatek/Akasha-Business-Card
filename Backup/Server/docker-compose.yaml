@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  couchbase:
+    image: couchbase/server:7.1.1
+    ports:
+      - "8091-8094:8091-8094"
+      - "11210:11210"
+    volumes:
+      - couchbase_data:/opt/couchbase/var
+    environment:
+      - COUCHBASE_ADMINISTRATOR_USERNAME=${COUCHBASE_ADMIN_USERNAME}
+      - COUCHBASE_ADMINISTRATOR_PASSWORD=${COUCHBASE_ADMIN_PASSWORD}
+      - COUCHBASE_BUCKET=${COUCHBASE_BUCKET}
+
+  sync-gateway:
+    image: couchbase/sync-gateway:3.0.0
+    ports:
+      - "4984:4984"
+    depends_on:
+      - couchbase
+    volumes:
+      - ./sync-gateway-config.json:/etc/sync_gateway/sync_gateway.json
+
+volumes:
+  couchbase_data:

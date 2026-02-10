@@ -1,0 +1,18 @@
+{
+  "interface": ":4984",
+  "adminInterface": ":4985",
+  "databases": {
+    "default": {
+      "server": "http://couchbase:8091",
+      "username": "admin",
+      "password": "password",
+      "bucket": "default",
+      "users": {
+        "GUEST": {
+          "disabled": false,
+          "admin_channels": ["*"]
+        }
+      }
+    }
+  }
+}
