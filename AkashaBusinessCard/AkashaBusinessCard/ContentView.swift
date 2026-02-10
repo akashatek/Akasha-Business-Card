@@ -10,57 +10,48 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
-
+    @Query(sort: \BusinessCardProfile.name) private var profiles: [BusinessCardProfile]
+    
+    @State private var selectedProfile: BusinessCardProfile?
+    
     var body: some View {
         NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
-                }
-                .onDelete(perform: deleteItems)
-            }
-#if os(macOS)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-#endif
-            .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-#endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
+            BusinessCardProfileListView(selectedProfile: $selectedProfile)
         } detail: {
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
+            // Content - Card View
+            if let profile = selectedProfile, let card = profile.businessCard {
+                BusinessCardView(businessCard: card, profileName: profile.name)
+            } else {
+                ContentUnavailableView(
+                    "Select a Profile",
+                    systemImage: "person.crop.rectangle",
+                    description: Text("Choose a profile to view")
+                )
             }
         }
+        .onAppear {
+            if profiles.isEmpty {
+                createSampleProfiles()
+            } else if selectedProfile == nil {
+                selectedProfile = profiles.first
+            }
+        }
+    }
+    
+    private func createSampleProfiles() {
+        // Sample 1: Alvin Heib
+        let card1 = BusinessCard(firstname: "Alvin", lastname: "Heib")
+        let profile1 = BusinessCardProfile(name: "Alvin Heib", businessCard: card1)
+        modelContext.insert(profile1)
+        
+        // Sample 2: Akasha Tek
+        let card2 = BusinessCard(firstname: "Akasha", lastname: "Tek")
+        let profile2 = BusinessCardProfile(name: "Akasha Tek", businessCard: card2)
+        modelContext.insert(profile2)
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+        .modelContainer(for: BusinessCardProfile.self, inMemory: true)
 }

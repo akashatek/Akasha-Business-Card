@@ -12,14 +12,30 @@ import SwiftData
 struct AkashaBusinessCardApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            BusinessCard.self,
+            BusinessCardProfile.self,
         ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        let modelConfiguration = ModelConfiguration(
+            schema: schema,
+            isStoredInMemoryOnly: false,
+            allowsSave: true,
+            groupContainer: .identifier("group.com.akashatek.AkashaBusinessCard"),
+            cloudKitDatabase: .none
+        )
 
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            // Fallback to in-memory only if persistent storage fails
+            let fallbackConfig = ModelConfiguration(
+                schema: schema,
+                isStoredInMemoryOnly: true
+            )
+            do {
+                return try ModelContainer(for: schema, configurations: [fallbackConfig])
+            } catch {
+                fatalError("Could not create ModelContainer: \(error)")
+            }
         }
     }()
 
